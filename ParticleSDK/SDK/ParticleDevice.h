@@ -207,6 +207,11 @@ typedef NS_ENUM(NSInteger, ParticleDeviceNetworkRoleState) {
  */
 @property (nonatomic, readonly) NSString *typeString;
 
+//current labs changes
+//esp properties that matter
+@property (nonatomic, strong) NSString *nonParticleDeviceID;
+@property (nonatomic, strong) NSString *nonParticleProduct;
+
 
 
 -(nullable instancetype)initWithParams:(NSDictionary *)params NS_DESIGNATED_INITIALIZER;

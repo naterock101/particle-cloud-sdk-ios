@@ -109,6 +109,11 @@ typedef NS_ENUM(NSInteger, ParticleUpdateSimAction) {
  */
 + (instancetype)sharedInstance;
 
+//current labs changes
+//esp properties that matter
+@property (nonatomic, strong) ParticleDevice *nonParticleDevice;
+
+
 #pragma mark User onboarding functions
 
 /**

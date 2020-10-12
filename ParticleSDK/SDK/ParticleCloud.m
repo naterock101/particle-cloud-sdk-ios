@@ -583,49 +583,65 @@ static NSString *const kDefaultoAuthClientSecret = @"particle";
 -(NSURLSessionDataTask *)getDevice:(NSString *)deviceID
                         completion:(nullable void (^)(ParticleDevice * _Nullable device, NSError * _Nullable error))completion
 {
-    if (self.session.accessToken) {
-        NSString *authorization = [NSString stringWithFormat:@"Bearer %@",self.session.accessToken];
-        [self.manager.requestSerializer setValue:authorization forHTTPHeaderField:@"Authorization"];
-    }
-
-    NSString *urlPath = [NSString stringWithFormat:@"/v1/devices/%@",deviceID];
-    [ParticleLogger logInfo:NSStringFromClass([self class]) format:@"GET %@", urlPath];
-
-    NSURLSessionDataTask *task = [self.manager GET:urlPath parameters:nil headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject)
-    {
-        [ParticleLogger logInfo:NSStringFromClass([self class]) format:@"%@ (%i)", urlPath, (int)((NSHTTPURLResponse *)task.response).statusCode];
-        [ParticleLogger logComplete:NSStringFromClass([self class]) format:@"%@", responseObject];
-         if (completion)
-         {
-             NSMutableDictionary *responseDict = responseObject;
-             ParticleDevice *device = [[ParticleDevice alloc] initWithParams:responseDict];
-             
-             if (device) { // new 0.5.0 local storage of devices for reporting system events
-                 if (!self.devicesMapTable) {
-                     self.devicesMapTable = [NSMapTable mapTableWithKeyOptions:NSMapTableStrongMemory valueOptions:NSMapTableObjectPointerPersonality]; // let the user decide when to release ParticleDevice objects
-                 }
-                 [self.devicesMapTable setObject:device forKey:device.id];
-             }
-             
-             if (completion)
-             {
-                completion(device, nil);
-             }
-             
-         }
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error)
-    {
-        NSError *particleError = [ParticleErrorHelper getParticleError:error task:task customMessage:nil];
-
-        if (completion)
-        {
-            completion(nil, particleError);
+    //current labs changes
+    if (![deviceID hasPrefix:@"esp32"]) {
+        //exisiting particle function
+        if (self.session.accessToken) {
+            NSString *authorization = [NSString stringWithFormat:@"Bearer %@",self.session.accessToken];
+            [self.manager.requestSerializer setValue:authorization forHTTPHeaderField:@"Authorization"];
         }
 
-        [ParticleLogger logError:NSStringFromClass([self class]) format:@"! getDevice Failed %@ (%ld): %@\r\n%@", task.originalRequest.URL, (long)particleError.code, particleError.localizedDescription, particleError.userInfo[ParticleSDKErrorResponseBodyKey]];
-    }];
-    
-    return task;
+        NSString *urlPath = [NSString stringWithFormat:@"/v1/devices/%@",deviceID];
+        [ParticleLogger logInfo:NSStringFromClass([self class]) format:@"GET %@", urlPath];
+
+        NSURLSessionDataTask *task = [self.manager GET:urlPath parameters:nil headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject)
+        {
+            [ParticleLogger logInfo:NSStringFromClass([self class]) format:@"%@ (%i)", urlPath, (int)((NSHTTPURLResponse *)task.response).statusCode];
+            [ParticleLogger logComplete:NSStringFromClass([self class]) format:@"%@", responseObject];
+             if (completion)
+             {
+                 NSMutableDictionary *responseDict = responseObject;
+                 ParticleDevice *device = [[ParticleDevice alloc] initWithParams:responseDict];
+                 
+                 if (device) { // new 0.5.0 local storage of devices for reporting system events
+                     if (!self.devicesMapTable) {
+                         self.devicesMapTable = [NSMapTable mapTableWithKeyOptions:NSMapTableStrongMemory valueOptions:NSMapTableObjectPointerPersonality]; // let the user decide when to release ParticleDevice objects
+                     }
+                     [self.devicesMapTable setObject:device forKey:device.id];
+                 }
+                 
+                 if (completion)
+                 {
+                    completion(device, nil);
+                 }
+                 
+             }
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error)
+        {
+            NSError *particleError = [ParticleErrorHelper getParticleError:error task:task customMessage:nil];
+
+            if (completion)
+            {
+                completion(nil, particleError);
+            }
+
+            [ParticleLogger logError:NSStringFromClass([self class]) format:@"! getDevice Failed %@ (%ld): %@\r\n%@", task.originalRequest.URL, (long)particleError.code, particleError.localizedDescription, particleError.userInfo[ParticleSDKErrorResponseBodyKey]];
+        }];
+        
+        return task;
+    } else {
+        //esp32 stuff
+        if (!self.nonParticleDevice) {
+            ParticleDevice *device = [[ParticleDevice alloc] initWithParams:@{@"id":deviceID}];
+            self.nonParticleDevice = device;
+        }
+
+        if (completion) {
+           completion(self.nonParticleDevice, nil);
+        }
+        
+        return nil;
+    }
 }
 
 
