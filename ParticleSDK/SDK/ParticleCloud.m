@@ -92,6 +92,9 @@ static NSString *const kDefaultoAuthClientSecret = @"particle";
         if (self.session)
         {
             self.session.delegate = self;
+            //current labs change (removing device claiming stuff)
+            [self.session removeSession];
+            //current labs change end
         }
         
         // Init HTTP manager
