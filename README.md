@@ -9,6 +9,7 @@
 
 ### Introduction
 
+This is a forked version for use in Current Labs iOS porjects -- changes include: allowing for esp32 hardware and UI/Customization changes.
 
 Particle iOS Cloud SDK enables iOS apps to interact with Particle-powered connected products via the Particle Cloud. It’s an easy-to-use wrapper for Particle REST API. The Cloud SDK will allow you to:
 
